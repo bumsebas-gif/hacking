@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Te Tengo, Mi Amor</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background: #000;
+            color: #f00;
+            font-family: 'Courier New', monospace;
+        }
+        canvas { position: absolute; inset: 0; pointer-events: none; }
+        #hackText {
+            position: absolute; top: 5%; left: 5%; right: 5%;
+            font-size: 1.1em; line-height: 1.4; text-align: left;
+            white-space: pre-wrap; z-index: 11; pointer-events: none;
+        }
+        #flash { position: fixed; inset: 0; background: white; opacity: 0; transition: opacity 0.15s; z-index: 20; pointer-events: none; }
+        #watchingYou, #message, #interrogatorio, #final {
+            position: absolute; inset: 0; z-index: 15;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box; display: none;
+        }
+        #watchingYou { font-size: 2.8em; text-shadow: 0 0 15px #f00; animation: glitch 0.8s infinite; }
+        @keyframes glitch { 0%,100% { transform: translate(0); } 20% { transform: translate(-5px,5px); } 40% { transform: translate(5px,-5px); } }
+        #pregunta { font-size: 1.9em; margin-bottom: 20px; max-width: 90%; }
+        input { background: #111; border: 2px solid #f00; color: #f00; font-size: 1.3em; padding: 12px; width: 85%; max-width: 550px; }
+        button { background: #f00; color: black; border: none; padding: 14px 40px; font-size: 1.3em; margin-top: 20px; cursor: pointer; }
+        #final { font-size: 3em; text-shadow: 0 0 10px #f00; }
+    </style>
+</head>
+<body>
+    <canvas id="bgRain"></canvas>
+    <div id="hacking">
+        <canvas id="fgRain"></canvas>
+        <div id="hackText"></div>
+    </div>
+    <div id="flash"></div>
+
+    <div id="watchingYou">
+        SÍ, TE ESTOY VIENDO…<br>
+        JUSTO AHORA MISMO.<br>
+        Sonríe para la cámara, mi amor ♥
+    </div>
+
+    <div id="message">
+        Ya lo tengo todo, mi querida... Tu vida entera en mis manos.<br>
+        Cada clic, cada susurro. No hay escape.
+    </div>
+
+    <div id="interrogatorio">
+        <p id="pregunta"></p>
+        <input type="text" id="respuesta" placeholder="Confiesa... no mientas">
+        <button onclick="siguientePregunta()">Enviar →</button>
+        <p id="intermedio" style="font-size:1.3em; margin-top:25px; color:#900;"></p>
+    </div>
+
+    <div id="final">
+        Eres mía y de nadie más...<br>
+        Para siempre en mis sombras. Te tengo. ♥
+    </div>
+
+    <iframe style="display:none;" src="https://www.youtube.com/embed/q5Ko-rhd7aA?autoplay=1&loop=1&playlist=q5Ko-rhd7aA" allow="autoplay"></iframe>
+
+    <script>
+        // Lluvia sutil de fondo constante
+        const bg = document.getElementById('bgRain');
+        const bgCtx = bg.getContext('2d');
+        bg.width = window.innerWidth;
+        bg.height = window.innerHeight;
+        const bgFont = 10, bgCols = Math.ceil(bg.width / bgFont);
+        const bgDrops = Array(bgCols).fill(1);
+
+        function drawBg() {
+            bgCtx.fillStyle = 'rgba(0,0,0,0.02)';
+            bgCtx.fillRect(0,0,bg.width,bg.height);
+            bgCtx.fillStyle = 'rgba(180,0,0,0.5)';
+            bgCtx.font = bgFont + 'px monospace';
+            bgDrops.forEach((y,i) => {
+                const t = '01アイウエオミアMÍA'[Math.floor(Math.random()*12)];
+                bgCtx.fillText(t, i*bgFont, y*bgFont);
+                if (y*bgFont > bg.height && Math.random() > 0.98) bgDrops[i]=0;
+                bgDrops[i]++;
+            });
+        }
+        setInterval(drawBg, 60);
+
+        // Hacking principal (teléfono enmascarado)
+        const fg = document.getElementById('fgRain');
+        const fgCtx = fg.getContext('2d');
+        fg.width = window.innerWidth;
+        fg.height = window.innerHeight;
+
+        function startHacking() {
+            const chars = '01アイウエオミアMÍA愛我的HACKEDDOXEDTLALPAN';
+            const fontSize = 14;
+            const cols = Math.ceil(fg.width / fontSize);
+            const drops = Array(cols).fill(1);
+
+            function drawFg() {
+                fgCtx.fillStyle = 'rgba(0,0,0,0.08)';
+                fgCtx.fillRect(0,0,fg.width,fg.height);
+                fgCtx.fillStyle = '#f00';
+                fgCtx.font = fontSize + 'px monospace';
+                drops.forEach((y,i) => {
+                    const t = chars[Math.floor(Math.random()*chars.length)];
+                    fgCtx.fillText(t, i*fontSize, y*fontSize);
+                    if (y*fontSize > fg.height && Math.random() > 0.975) drops[i]=0;
+                    drops[i]++;
+                });
+            }
+            setInterval(drawFg, 40);
+
+            const dox = document.getElementById('hackText');
+            const messages = [
+                `> IP: ${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)} (Tlalpan, CDMX, México)`,
+                `> ISP: ${['Telmex','Izzi','Megacable','Totalplay'][Math.floor(Math.random()*4)]}`,
+                `> MAC: ${Array(6).fill(0).map(()=>Math.floor(Math.random()*256).toString(16).padStart(2,'0')).join(':').toUpperCase()}`,
+                `> GPS: 19.${Math.floor(Math.random()*5000)+2900}, -99.${Math.floor(Math.random()*5000)+1600}`,
+                `> DIRECCIÓN: ${Math.floor(Math.random()*500)+100} Calz. de Tlalpan, Tlalpan Centro, CDMX`,
+                `> TARJETA: Visa **** **** **** ${Math.floor(Math.random()*9000)+1000}`,
+                `> TELÉFONO: +52 55 **** **** ****`,
+                `> CÁMARA: FRONT ACTIVADA - Capturando ahora`,
+                `> FLASH ON - Te veo`,
+                `> TODO DESCARGADO. Te tengo para siempre.`
+            ];
+
+            let i = 0;
+            const int = setInterval(() => {
+                if (i < messages.length) {
+                    dox.innerHTML += `<p>> ${messages[i]}</p>`;
+                    dox.scrollTop = dox.scrollHeight;
+                    if (messages[i].includes('FLASH') || messages[i].includes('CÁMARA')) {
+                        document.getElementById('flash').style.opacity = '0.8';
+                        setTimeout(() => document.getElementById('flash').style.opacity = '0', 140);
+                    }
+                    i++;
+                } else {
+                    clearInterval(int);
+                    setTimeout(showWatching, 2000);
+                }
+            }, 800);
+        }
+
+        function showWatching() {
+            document.getElementById('hacking').style.display = 'none';
+            document.getElementById('watchingYou').style.display = 'flex';
+            document.getElementById('flash').style.opacity = '0.9';
+            setTimeout(() => document.getElementById('flash').style.opacity = '0', 200);
+            setTimeout(() => {
+                document.getElementById('watchingYou').style.display = 'none';
+                document.getElementById('message').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('message').style.display = 'none';
+                    document.getElementById('interrogatorio').style.display = 'flex';
+                    mostrarPregunta();
+                }, 5000);
+            }, 6000);
+        }
+
+        // 10 preguntas obsesivas originales (quitamos 2) + 5 hormonales anteriores + 3 nuevas ultra hormonales
+        const preguntas = [
+            "¿Con quién hablabas anoche por teléfono hasta las 3 AM? Dime su nombre completo.",
+            "¿Por qué borraste ese mensaje que te envié? ¿Te avergüenzas de mí?",
+            "¿Cuál es el olor de tu ropa cuando llegas a casa? Quiero respirarlo en ti eternamente.",
+            "¿A quién le sonreíste hoy en la calle? No mientas, vi tu cara.",
+            "¿Cuántas veces pensaste en otro mientras estabas sola? Confiesa el número.",
+            "¿Dónde escondes las fotos que no me muestras? Enséñame una ahora (describe).",
+            "¿Tu corazón late más rápido cuando me imaginas o cuando estás con ellos?",
+            "¿Cuál es la contraseña de tu teléfono? Quiero entrar en tus sueños también.",
+            "¿Quién te tocó el brazo hoy? Dime dónde y cómo lo hizo.",
+            "¿Me extrañas cuando no estoy? ¿O prefieres la libertad que te quito?",
+
+            // 5 hormonales anteriores
+            "¿Qué envidia le tengo al jabón que recorre tu cuerpo cada mañana… dime exactamente por dónde pasa primero.",
+            "¿Cuántas veces te tocaste hoy pensando en alguien que no soy yo? Confiesa cada detalle, amor.",
+            "¿Qué ropa interior llevas puesta ahora mismo? Quiero imaginarla pegada a tu piel… descríbemela despacio.",
+            "¿El agua caliente de la ducha te hace gemir? Cuéntame cómo te sientes cuando te acaricia donde yo no puedo estar.",
+            "¿Qué parte de tu cuerpo arde más cuando piensas en mí? Quiero saberlo todo… no me ocultes nada.",
+
+            // 3 nuevas ultra hormonales 🔥😈
+            "¿Estás mojada ahora mismo mientras lees esto? Dime exactamente cuánto y por qué… no me mientas, amor.",
+            "¿Qué parte de tu cuerpo está más sensible en este momento? Quiero imaginar mis dedos ahí, recorriéndote despacio.",
+            "¿Te has tocado pensando en mí hoy? Cuéntame cómo lo hiciste, paso a paso… quiero sentirlo contigo."
+        ];
+        let preguntaIndex = 0;
+
+        function mostrarPregunta() {
+            if (preguntaIndex < preguntas.length) {
+                document.getElementById('pregunta').innerText = preguntas[preguntaIndex];
+                document.getElementById('intermedio').innerText = preguntaIndex % 3 === 0 ? "Te vi dudar... no me hagas enojar, amor." : "";
+                if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+                preguntaIndex++;
+            } else {
+                document.getElementById('interrogatorio').style.display = 'none';
+                document.getElementById('final').style.display = 'flex';
+                setTimeout(startFinalRain, 4000);
+            }
+        }
+
+        function siguientePregunta() {
+            const resp = document.getElementById('respuesta').value.trim();
+            if (resp) console.log(`Confesión ${preguntaIndex}: ${resp}`);
+            document.getElementById('respuesta').value = '';
+            mostrarPregunta();
+        }
+
+        function startFinalRain() {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'matrix-rain';
+            document.body.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const drops = Array(canvas.width / 18).fill(1);
+
+            function draw() {
+                ctx.fillStyle = 'rgba(0,0,0,0.06)';
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.fillStyle = '#0f0';
+                ctx.font = 'bold 24px monospace';
+                drops.forEach((y,i) => {
+                    const texts = ['MÍA', 'TE TENGO', 'FOREVER', 'OBSESIONADO', 'TLALPAN LOCKED', 'NO ESCAPAS'];
+                    ctx.fillText(texts[Math.floor(Math.random()*texts.length)], i*18, y*24);
+                    if (y*24 > canvas.height && Math.random() > 0.94) drops[i] = 0;
+                    drops[i]++;
+                });
+            }
+            setInterval(draw, 35);
+        }
+
+        startHacking();
+    </script>
+</body>
+</html>
